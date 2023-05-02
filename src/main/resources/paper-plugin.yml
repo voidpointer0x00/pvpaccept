@@ -1,0 +1,29 @@
+name: PvpAcceptPlugin
+version: '${version}'
+main: voidpointer.mc.pvpaccept.PvpAcceptPlugin
+api-version: 1.19
+authors: [_voidpointer]
+website: vk.me/void.pointer
+folia-supported: true
+
+dependencies:
+  - name: PlaceholderAPI
+    required: false
+    bootstrap: false
+load-after:
+  - name: PlaceholderAPI
+
+commands:
+  pvp:
+    description: "Toggle PvP status"
+  pvp-send:
+    description: "Sends PvP request"
+    aliases: [ pvpsend ]
+  pvp-accept:
+    description: "Accepts the given or last incoming PvP request"
+    usage: '/pvp-accept <player>'
+    aliases: [ pvpyes, pvpaccept ]
+  pvp-deny:
+    description: "Denies the given or last incoming PvP request"
+    usage: '/pvp-deny <player>'
+    aliases: [ pvpno, pvpdeny ]
