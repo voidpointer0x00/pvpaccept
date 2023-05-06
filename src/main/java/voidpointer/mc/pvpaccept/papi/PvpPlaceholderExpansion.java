@@ -22,15 +22,11 @@ public final class PvpPlaceholderExpansion extends PlaceholderExpansion {
 
     @SuppressWarnings("UnstableApiUsage")
     public static void registerExpansion(final JavaPlugin plugin, final Locale locale, final PvpService pvpService) {
-        if (plugin.getServer().getPluginManager().getPlugin("PlaceholderAPI") == null) {
-            plugin.getSLF4JLogger().info("Unable to hook PAPI: the plugin is missing.");
-        } else {
-            new PvpPlaceholderExpansion(plugin.getSLF4JLogger(),
-                    () -> plugin.getPluginMeta().getAuthors().get(0),
-                    plugin.getPluginMeta()::getVersion,
-                    locale,
-                    pvpService);
-        }
+        new PvpPlaceholderExpansion(plugin.getSLF4JLogger(),
+                () -> plugin.getPluginMeta().getAuthors().get(0),
+                plugin.getPluginMeta()::getVersion,
+                locale,
+                pvpService);
     }
 
     private final Logger log;

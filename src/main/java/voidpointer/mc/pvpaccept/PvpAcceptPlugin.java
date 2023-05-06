@@ -31,7 +31,10 @@ public final class PvpAcceptPlugin extends JavaPlugin {
     }
 
     @Override public void onEnable() {
-        PvpPlaceholderExpansion.registerExpansion(this, locale, pvpService);
+        if (getServer().getPluginManager().getPlugin("PlaceholderAPI") == null)
+            getSLF4JLogger().info("Unable to hook PAPI: the plugin is missing.");
+        else
+            PvpPlaceholderExpansion.registerExpansion(this, locale, pvpService);
         registerCommands();
         PvpDuelController.register(this, pvpService);
     }
