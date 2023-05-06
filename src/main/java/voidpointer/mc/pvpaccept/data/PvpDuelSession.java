@@ -19,7 +19,7 @@ public final class PvpDuelSession {
     private final UUID requestSender;
     @ToString.Include
     private final ComponentLike senderName;
-    @ToString.Include
+    @ToString.Include /* TODO remove if unused */
     private final Date expiresAt;
 
     public PvpDuelSession(final Player requested, final Player requestSender, final Date expiresAt) {
@@ -42,15 +42,7 @@ public final class PvpDuelSession {
         return requestedName;
     }
 
-    public UUID requestSender() {
-        return requestSender;
-    }
-
     public ComponentLike senderName() {
         return senderName;
-    }
-
-    public Date expiresAt() {
-        return expiresAt;
     }
 }
