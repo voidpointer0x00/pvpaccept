@@ -10,9 +10,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface PvpService {
-    void enableFor(@NotNull UUID playerUniqueId);
+    void enablePvp(@NotNull UUID playerUniqueId);
 
-    void disableFor(@NotNull UUID playerUniqueId) throws PvpDisableCoolDownException;
+    void disablePvp(@NotNull UUID playerUniqueId) throws PvpDisableCoolDownException;
+
+    void disablePvpForcefully(@NotNull UUID playerUniqueId) throws PvpDisableCoolDownException;
 
     boolean isEnabledFor(@NotNull UUID playerUniqueId);
 

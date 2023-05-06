@@ -31,6 +31,15 @@ public final class YamlLocale extends AbstractConfig implements Locale {
     }
 
     @Override protected void applyDefaults(final YamlConfiguration config) {
-        // TODO implement
+        applyDefaults(config, PvpInfoMessage.values());
+        applyDefaults(config, PvpErrorMessage.values());
+        applyDefaults(config, FormatMessage.values());
+        applyDefaults(config, PvpPapiMessage.values());
+        applyDefaults(config, InternalMessage.values());
+    }
+
+    private void applyDefaults(final YamlConfiguration config, final LocaleMessage... messages) {
+        for (final LocaleMessage message : messages)
+            config.addDefault(message.path(), message.defaultValue());
     }
 }

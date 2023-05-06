@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 
 @RequiredArgsConstructor
 public enum InternalMessage implements LocaleMessage {
-    PLUGIN_COMMAND_NOT_FOUND("Команда <cmd> не найдена в файле описания плагина paper-plugin.yml"),
+    PLUGIN_COMMAND_NOT_FOUND("Команда <cmd> не найдена в файле описания плагина plugin.yml"),
     ;
 
     @NotNull private final String defaultValue;

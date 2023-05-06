@@ -7,6 +7,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 import org.slf4j.Logger;
 import voidpointer.mc.pvpaccept.data.PvpService;
@@ -38,5 +39,11 @@ public final class PvpDuelController implements Listener {
                 return;
             pvpService.nominateDuelWinner(killer, duel);
         }));
+    }
+
+    @EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
+    void disablePvpOnQuit(final PlayerQuitEvent quitEvent) {
+        pvpService.disablePvpForcefully(quitEvent.getPlayer().getUniqueId());
+        log.debug("Disabled PvP for player {}[{}]", quitEvent.getPlayer().getName(), quitEvent.getPlayer().getUniqueId());
     }
 }

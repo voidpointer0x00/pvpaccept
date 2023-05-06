@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 
 @RequiredArgsConstructor
 public enum PvpPapiMessage implements LocaleMessage {
-    ON("<green>true"), OFF("<red>false");
+    ON("&atrue"), OFF("&cfalse");
 
     private final String defaultValue;
 

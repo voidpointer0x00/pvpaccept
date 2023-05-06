@@ -23,6 +23,7 @@ public abstract class AbstractConfig {
 
     protected final YamlConfiguration saveDefault() {
         YamlConfiguration config = new YamlConfiguration();
+        config.options().copyDefaults(true).parseComments(true);
         applyDefaults(config);
         try {
             config.save(configFile);

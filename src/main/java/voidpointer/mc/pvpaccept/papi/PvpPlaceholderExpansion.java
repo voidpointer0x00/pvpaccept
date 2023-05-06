@@ -22,11 +22,13 @@ public final class PvpPlaceholderExpansion extends PlaceholderExpansion {
 
     @SuppressWarnings("UnstableApiUsage")
     public static void registerExpansion(final JavaPlugin plugin, final Locale locale, final PvpService pvpService) {
-        new PvpPlaceholderExpansion(plugin.getSLF4JLogger(),
+        new PvpPlaceholderExpansion(
+                plugin.getSLF4JLogger(),
                 () -> plugin.getPluginMeta().getAuthors().get(0),
                 plugin.getPluginMeta()::getVersion,
                 locale,
-                pvpService);
+                pvpService
+        ).register();
     }
 
     private final Logger log;
