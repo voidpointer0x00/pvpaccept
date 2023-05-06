@@ -40,7 +40,8 @@ public final class PvpAcceptPlugin extends JavaPlugin {
     }
 
     @Override public void onDisable() {
-        pvpService.clear();
+        if (pvpService != null)
+            pvpService.clear();
     }
 
     private void registerCommands() {
