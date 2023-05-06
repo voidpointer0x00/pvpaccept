@@ -14,6 +14,7 @@ import voidpointer.mc.pvpaccept.exception.PvpAlreadyRequestedException;
 import voidpointer.mc.pvpaccept.exception.PvpDisableCoolDownException;
 import voidpointer.mc.pvpaccept.exception.PvpException;
 import voidpointer.mc.pvpaccept.exception.PvpRequestNotFoundException;
+import voidpointer.mc.pvpaccept.exception.RequestSenderOfflineException;
 import voidpointer.mc.pvpaccept.schedule.PluginScheduler;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -60,7 +61,7 @@ public final class InMemoryPvpService implements PvpService {
     }
 
     @Override public @NotNull Player sendPvpRequest(@NotNull final UUID requestSender, @NotNull final String requestReceiverName) {
-        Player requestReceiver = findByName(requestReceiverName);
+        Player requestReceiver = findOnlineByName(requestReceiverName);
         Deque<UUID> requests = pvpRepository.getPvpRequestsFor(requestReceiver.getUniqueId());
         if (requests.contains(requestSender))
             throw new PvpAlreadyRequestedException(requestReceiver);
@@ -68,8 +69,8 @@ public final class InMemoryPvpService implements PvpService {
         return requestReceiver;
     }
 
-    @Override public void acceptPvpRequest(@NotNull final Player requestedPlayer, @NotNull final String requestSenderName) {
-        Player requestSender = findByName(requestSenderName);
+    @Override public @NotNull PvpDuelSession acceptPvpRequest(@NotNull final Player requestedPlayer, @NotNull final String requestSenderName) {
+        Player requestSender = findOnlineByName(requestSenderName);
         assertNotDueling(requestedPlayer, requestSender);
 
         Deque<UUID> requests = pvpRepository.getPvpRequestsFor(requestedPlayer.getUniqueId());
@@ -78,11 +79,12 @@ public final class InMemoryPvpService implements PvpService {
 
         var duel = new PvpDuelSession(requestedPlayer, requestSender, new Date(currentTimeMillis() + pvpConfig.getPvpFinishesIn()));
         pvpRepository.addPvpDuelSession(duel);
-        // TODO schedule duel finish task & destroy if any combatant dies
         scheduleDraw(duel);
+
+        return duel;
     }
 
-    @Override public void acceptLast(@NotNull final Player requestedPlayer) {
+    @Override public @NotNull PvpDuelSession acceptLast(@NotNull final Player requestedPlayer) {
         assertNotDueling(requestedPlayer);
 
         Deque<UUID> requests = pvpRepository.getPvpRequestsFor(requestedPlayer.getUniqueId());
@@ -92,15 +94,15 @@ public final class InMemoryPvpService implements PvpService {
         Player requestSender = Bukkit.getPlayer(requestSenderUniqueId);
 
         PvpDuelSession duel;
-        if (requestSender != null) {
+        if (requestSender != null && requestSender.isOnline())
             duel = new PvpDuelSession(requestedPlayer, requestSender, new Date(currentTimeMillis() + pvpConfig.getPvpFinishesIn()));
-        } else {
-            log.warn("Unable to fetch Player instance for {}, running offline without user cache?", requestSenderUniqueId);
-            duel = new PvpDuelSession(requestedPlayer, requestSenderUniqueId, new Date(System.currentTimeMillis() + pvpConfig.getPvpFinishesIn()));
-        }
+        else
+            throw new RequestSenderOfflineException();
+
         pvpRepository.addPvpDuelSession(duel);
-        // TODO schedule duel finish task & destroy if any combatant dies
         scheduleDraw(duel);
+
+        return duel;
     }
 
     private void scheduleDraw(final PvpDuelSession duel) {
@@ -111,7 +113,7 @@ public final class InMemoryPvpService implements PvpService {
     }
 
     @Override public @NotNull Player denyFromPlayer(@NotNull final Player requestedPlayer, @NotNull final String requestSenderName) {
-        Player requestSender = findByName(requestSenderName);
+        Player requestSender = findOnlineByName(requestSenderName);
 
         Deque<UUID> requests = pvpRepository.getPvpRequestsFor(requestedPlayer.getUniqueId());
         if (!requests.remove(requestSender.getUniqueId()))
@@ -120,12 +122,15 @@ public final class InMemoryPvpService implements PvpService {
         return requestSender;
     }
 
-    @Override public @NotNull Optional<Player> denyLast(@NotNull final Player requestedPlayer) {
+    @Override public @NotNull Player denyLast(@NotNull final Player requestedPlayer) {
         Deque<UUID> requests = pvpRepository.getPvpRequestsFor(requestedPlayer.getUniqueId());
         if (requests.isEmpty())
             throw new PvpRequestNotFoundException();
 
-        return Optional.ofNullable(Bukkit.getPlayer(requests.removeLast()));
+        final Player requestSender = Bukkit.getPlayer(requests.removeLast());
+        if (requestSender == null || !requestedPlayer.isOnline())
+            throw new RequestSenderOfflineException();
+        return requestSender;
     }
 
     @Override public Optional<PvpDuelSession> duelOf(final @NotNull Player player) {
@@ -147,7 +152,7 @@ public final class InMemoryPvpService implements PvpService {
         pvpRepository.clear();
     }
 
-    private @NotNull Player findByName(@NotNull final String playerName) throws PlayerNotFoundException {
+    private @NotNull Player findOnlineByName(@NotNull final String playerName) throws PlayerNotFoundException {
         for (final Player onlinePlayer : Bukkit.getOnlinePlayers())
             if (onlinePlayer.getName().equalsIgnoreCase(playerName))
                 return onlinePlayer;

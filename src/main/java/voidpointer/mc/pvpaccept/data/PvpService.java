@@ -19,16 +19,19 @@ public interface PvpService {
     /** @return an instance of a player who received the request. */
     @NotNull Player sendPvpRequest(@NotNull UUID requestSender, @NotNull String requestReceiver) throws PlayerNotFoundException;
 
-    void acceptPvpRequest(@NotNull Player requestedPlayer, @NotNull String requestSenderName) throws PlayerNotFoundException, PvpRequestNotFoundException;
+    /** @return newly created duel session for the given players. */
+    @NotNull PvpDuelSession acceptPvpRequest(@NotNull Player requestedPlayer, @NotNull String requestSenderName) throws PlayerNotFoundException,
+            PvpRequestNotFoundException;
 
-    void acceptLast(@NotNull Player requestedPlayer) throws PvpRequestNotFoundException;
+    /** @return newly created duel session for the given players. */
+    @NotNull PvpDuelSession acceptLast(@NotNull Player requestedPlayer) throws PvpRequestNotFoundException;
 
     /** @return an instance of a player who sent the request if online. */
     @NotNull Player denyFromPlayer(@NotNull Player requestedPlayer, @NotNull String requestSender)
             throws PlayerNotFoundException, PvpRequestNotFoundException;
 
     /** @return an instance of a player who sent the last request if online. */
-    @NotNull Optional<Player> denyLast(@NotNull Player requestedPlayer) throws PvpRequestNotFoundException;
+    @NotNull Player denyLast(@NotNull Player requestedPlayer) throws PvpRequestNotFoundException;
 
     Optional<PvpDuelSession> duelOf(@NotNull Player player);
 

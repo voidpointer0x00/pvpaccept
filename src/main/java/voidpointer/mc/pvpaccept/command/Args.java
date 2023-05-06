@@ -1,5 +1,6 @@
 package voidpointer.mc.pvpaccept.command;
 
+import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -9,7 +10,6 @@ import voidpointer.mc.pvpaccept.exception.PvpException;
 
 import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -29,18 +29,8 @@ public final class Args {
         return player;
     }
 
-    public @NotNull UUID getUniqueId() throws PvpException {
-        return assertPlayer().getUniqueId();
-    }
-
-    public boolean isEmpty() {
-        return args == null || args.isEmpty();
-    }
-
-    public @NotNull String get(final int index) throws IndexOutOfBoundsException {
-        if (args == null)
-            throw new IndexOutOfBoundsException(index);
-        return args.get(index);
+    public Audience audience() {
+        return sender;
     }
 
     public void pollFirstIfPresentOrElse(final Consumer<String> argConsumer, final Runnable orElse) {

@@ -1,12 +1,19 @@
 package voidpointer.mc.pvpaccept.command.pvp;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import voidpointer.mc.pvpaccept.command.Args;
+import voidpointer.mc.pvpaccept.data.PvpDuelSession;
 import voidpointer.mc.pvpaccept.data.PvpService;
 import voidpointer.mc.pvpaccept.exception.PluginCommandNotFoundException;
 import voidpointer.mc.pvpaccept.exception.PvpException;
 import voidpointer.mc.pvpaccept.locale.Locale;
+
+import static net.kyori.adventure.audience.Audience.audience;
+import static net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.component;
+import static voidpointer.mc.pvpaccept.locale.PvpInfoMessage.DUEL_STARTED;
 
 public final class PvpAcceptCommand extends AbstractPvpCommand {
 
@@ -22,8 +29,13 @@ public final class PvpAcceptCommand extends AbstractPvpCommand {
     }
 
     @Override protected void execute(final Args args) {
-        args.pollFirstIfPresentOrElse(target -> pvpService.acceptPvpRequest(args.assertPlayer(), target),
-                () -> pvpService.acceptLast(args.assertPlayer()));
-        // TODO send success message
+        final Player requested = args.assertPlayer();
+        args.pollFirstIfPresentOrElse(target -> notifyDuelStarted(pvpService.acceptPvpRequest(requested, target)),
+                () -> notifyDuelStarted(pvpService.acceptLast(requested)));
+    }
+
+    private void notifyDuelStarted(final PvpDuelSession duel) {
+        locale.send(audience(Bukkit.getOnlinePlayers()), DUEL_STARTED, component("requested", duel.requestedName()),
+                component("sender",duel.senderName()));
     }
 }

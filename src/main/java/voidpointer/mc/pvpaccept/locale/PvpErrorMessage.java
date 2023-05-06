@@ -13,7 +13,7 @@ public enum PvpErrorMessage implements LocaleMessage {
     PVP_ALREADY_REQUESTED("<red>Вы уже вызвали <gold><player></gold> на дуэль."),
     REQUEST_NOT_FOUND("<red>Вызов на дуэль не найден."),
     TARGET_ALREADY_DUELING("<yellow><gold><player></gold> уже сражается с <gold><combatant></gold>."),
-    ;
+    REQUEST_SENDER_OFFLINE("<yellow>Невозможно принять дуэль: отправитель оффлайн.");
 
     private final String defaultValue;
 

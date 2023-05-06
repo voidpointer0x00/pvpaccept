@@ -2,7 +2,6 @@ package voidpointer.mc.pvpaccept.data;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import org.bukkit.entity.Player;
 
@@ -24,18 +23,10 @@ public final class PvpDuelSession {
     private final Date expiresAt;
 
     public PvpDuelSession(final Player requested, final Player requestSender, final Date expiresAt) {
-        this(requested, requestSender.getUniqueId(), requestSender.displayName(), expiresAt);
-    }
-
-    public PvpDuelSession(final Player requested, final UUID requestSenderUniqueId, final Date expiresAt) {
-        this(requested, requestSenderUniqueId, Component.text(requestSenderUniqueId.toString()), expiresAt);
-    }
-
-    private PvpDuelSession(final Player requested, final UUID requestSender, final ComponentLike senderName, final Date expiresAt) {
         this.requested = requested.getUniqueId();
         this.requestedName = requested.displayName();
-        this.requestSender = requestSender;
-        this.senderName = senderName;
+        this.requestSender = requestSender.getUniqueId();
+        this.senderName = requestSender.displayName();
         this.expiresAt = expiresAt;
     }
 

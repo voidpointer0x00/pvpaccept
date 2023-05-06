@@ -1,11 +1,16 @@
 package voidpointer.mc.pvpaccept.command.pvp;
 
 import org.bukkit.command.PluginCommand;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import voidpointer.mc.pvpaccept.command.Args;
 import voidpointer.mc.pvpaccept.data.PvpService;
 import voidpointer.mc.pvpaccept.exception.PluginCommandNotFoundException;
 import voidpointer.mc.pvpaccept.locale.Locale;
+
+import static net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.component;
+import static voidpointer.mc.pvpaccept.locale.PvpInfoMessage.YOUR_REQUEST_DENIED;
+import static voidpointer.mc.pvpaccept.locale.PvpInfoMessage.YOU_DENIED_REQUEST;
 
 public class PvpDenyCommand extends AbstractPvpCommand {
 
@@ -22,9 +27,13 @@ public class PvpDenyCommand extends AbstractPvpCommand {
 
     @Override
     protected void execute(final Args args) {
-        args.pollFirstIfPresentOrElse(
-                target -> pvpService.denyFromPlayer(args.assertPlayer(), target),
-                () -> pvpService.denyLast(args.assertPlayer()));
-        // TODO send success message
+        final Player requested = args.assertPlayer();
+        args.pollFirstIfPresentOrElse(target -> notifyDenied(pvpService.denyFromPlayer(requested, target), requested),
+                () -> notifyDenied(pvpService.denyLast(requested), requested));
+    }
+
+    private void notifyDenied(final Player sender, final Player requested) {
+        locale.send(sender, YOUR_REQUEST_DENIED, component("requested", requested.displayName()));
+        locale.send(requested, YOU_DENIED_REQUEST, component("sender", sender.displayName()));
     }
 }
