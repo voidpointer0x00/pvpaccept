@@ -13,20 +13,20 @@ public final class PvpConfig {
     private final Supplier<ConfigurationSection> configSupplier;
     private final Runnable saveConfigTask;
 
-    public long getPvpEnableCoolDown() {
-        final long pvpOnOffCoolDown = configSupplier.get().getLong("pvp.cool-downs.on-off");
+    public long getPvpDisableCoolDown() {
+        final long pvpOnOffCoolDown = configSupplier.get().getLong("pvp.timings.on-off-cool-down");
         if (pvpOnOffCoolDown <= 0) {
-            log.warn("Invalid pvp.cool-downs.on-off ({} <= 0), using default 5m instead.", pvpOnOffCoolDown);
-            return TimeUnit.MINUTES.toMillis(5);
+            log.warn("Invalid pvp.timings.on-off-cool-down ({} <= 0), using default 5m instead.", pvpOnOffCoolDown);
+            return TimeUnit.MINUTES.toSeconds(5) * 20L /* toTicks */;
         }
         return pvpOnOffCoolDown;
     }
 
     public long getPvpFinishesIn() {
-        final long pvpFinishesIn = configSupplier.get().getLong("pvp.cool-downs.pvp-finish");
+        final long pvpFinishesIn = configSupplier.get().getLong("pvp.timings.pvp-force-finish");
         if (pvpFinishesIn <= 0) {
-            log.warn("Invalid pvp.cool-downs.pvp-finish ({} <= 0), using default 5m instead.", pvpFinishesIn);
-            return TimeUnit.MINUTES.toMillis(5);
+            log.warn("Invalid pvp.timings.pvp-force-finish ({} <= 0), using default 5m instead.", pvpFinishesIn);
+            return TimeUnit.MINUTES.toSeconds(5) * 20L /* to ticks */;
         }
         return pvpFinishesIn;
     }

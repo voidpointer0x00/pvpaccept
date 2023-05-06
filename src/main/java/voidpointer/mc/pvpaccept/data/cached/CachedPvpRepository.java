@@ -28,7 +28,7 @@ final class CachedPvpRepository {
         return Optional.ofNullable(pvpStatusCache.get(playerUniqueId));
     }
 
-    public void setCoolDown(@NotNull final UUID playerUniqueId, final long pvpEnableCoolDown) {
+    public void setPvpDisableCoolDown(@NotNull final UUID playerUniqueId, final long pvpEnableCoolDown) {
         pvpDisableCoolDown.put(playerUniqueId, new Date(System.currentTimeMillis() + pvpEnableCoolDown));
     }
 
@@ -40,12 +40,16 @@ final class CachedPvpRepository {
         pvpDisableCoolDown.remove(playerUniqueId);
     }
 
-    public Deque<UUID> getPvpRequestsFor(final UUID requestReceiver) {
+    public Deque<UUID> getPvpRequestsFor(@NotNull final UUID requestReceiver) {
         return pvpRequests.computeIfAbsent(requestReceiver, (receiver) -> new ConcurrentLinkedDeque<>());
     }
 
-    public void addPvpDuelSession(final PvpDuelSession duel) {
+    public void addPvpDuelSession(@NotNull final PvpDuelSession duel) {
         pvpDuelSessions.add(duel);
+    }
+
+    public boolean removePvpDuelSession(@NotNull final PvpDuelSession duel) {
+        return pvpDuelSessions.remove(duel);
     }
 
     public @NotNull Set<PvpDuelSession> getPvpDuelSessions() {

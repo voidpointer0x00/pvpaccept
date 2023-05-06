@@ -1,9 +1,11 @@
 package voidpointer.mc.pvpaccept.data.cached;
 
+import lombok.extern.slf4j.Slf4j;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import voidpointer.mc.pvpaccept.config.PvpConfig;
+import voidpointer.mc.pvpaccept.data.DuelNotificationFactory;
 import voidpointer.mc.pvpaccept.data.PvpDuelSession;
 import voidpointer.mc.pvpaccept.data.PvpService;
 import voidpointer.mc.pvpaccept.exception.AlreadyDuelingException;
@@ -12,6 +14,7 @@ import voidpointer.mc.pvpaccept.exception.PvpAlreadyRequestedException;
 import voidpointer.mc.pvpaccept.exception.PvpDisableCoolDownException;
 import voidpointer.mc.pvpaccept.exception.PvpException;
 import voidpointer.mc.pvpaccept.exception.PvpRequestNotFoundException;
+import voidpointer.mc.pvpaccept.schedule.PluginScheduler;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Date;
@@ -19,22 +22,27 @@ import java.util.Deque;
 import java.util.Optional;
 import java.util.UUID;
 
+import static java.lang.System.currentTimeMillis;
+
+@Slf4j
 @ThreadSafe
 public final class InMemoryPvpService implements PvpService {
     private final PvpConfig pvpConfig;
+    private final PluginScheduler pluginScheduler;
     private final CachedPvpRepository pvpRepository;
+    private final DuelNotificationFactory duelNotificationFactory;
 
-    public InMemoryPvpService(final PvpConfig pvpConfig) {
+    public InMemoryPvpService(final PvpConfig pvpConfig, final PluginScheduler pluginScheduler, final DuelNotificationFactory duelNotificationFactory) {
         this.pvpConfig = pvpConfig;
+        this.pluginScheduler = pluginScheduler;
+        this.duelNotificationFactory = duelNotificationFactory;
         this.pvpRepository = new CachedPvpRepository();
     }
 
     @Override public void enableFor(@NotNull final UUID playerUniqueId) {
         pvpRepository.setPvp(playerUniqueId, true);
-        pvpRepository.setCoolDown(playerUniqueId, pvpConfig.getPvpEnableCoolDown());
-        // automatic pvp reset after cool down is not required by the customer
-        // TODO reset CD when its finished
-        // TODO notification for all players
+        pvpRepository.setPvpDisableCoolDown(playerUniqueId, pvpConfig.getPvpDisableCoolDown());
+        pluginScheduler.async(() -> pvpRepository.resetPvpDisableCoolDown(playerUniqueId), pvpConfig.getPvpDisableCoolDown());
     }
 
     @Override public void disableFor(@NotNull final UUID playerUniqueId) throws PvpException {
@@ -68,10 +76,10 @@ public final class InMemoryPvpService implements PvpService {
         if (!requests.remove(requestSender.getUniqueId()))
             throw new PvpRequestNotFoundException();
 
-        PvpDuelSession duel = new PvpDuelSession(requestedPlayer.getUniqueId(), requestSender.getUniqueId(),
-                new Date(System.currentTimeMillis() + pvpConfig.getPvpFinishesIn()));
+        var duel = new PvpDuelSession(requestedPlayer, requestSender, new Date(currentTimeMillis() + pvpConfig.getPvpFinishesIn()));
         pvpRepository.addPvpDuelSession(duel);
         // TODO schedule duel finish task & destroy if any combatant dies
+        scheduleDraw(duel);
     }
 
     @Override public void acceptLast(@NotNull final Player requestedPlayer) {
@@ -81,11 +89,25 @@ public final class InMemoryPvpService implements PvpService {
         if (requests.isEmpty())
             throw new PvpRequestNotFoundException();
         UUID requestSenderUniqueId = requests.removeLast();
+        Player requestSender = Bukkit.getPlayer(requestSenderUniqueId);
 
-        PvpDuelSession duel = new PvpDuelSession(requestedPlayer.getUniqueId(), requestSenderUniqueId,
-                new Date(System.currentTimeMillis() + pvpConfig.getPvpFinishesIn()));
+        PvpDuelSession duel;
+        if (requestSender != null) {
+            duel = new PvpDuelSession(requestedPlayer, requestSender, new Date(currentTimeMillis() + pvpConfig.getPvpFinishesIn()));
+        } else {
+            log.warn("Unable to fetch Player instance for {}, running offline without user cache?", requestSenderUniqueId);
+            duel = new PvpDuelSession(requestedPlayer, requestSenderUniqueId, new Date(System.currentTimeMillis() + pvpConfig.getPvpFinishesIn()));
+        }
         pvpRepository.addPvpDuelSession(duel);
         // TODO schedule duel finish task & destroy if any combatant dies
+        scheduleDraw(duel);
+    }
+
+    private void scheduleDraw(final PvpDuelSession duel) {
+        pluginScheduler.async(() -> {
+            if (pvpRepository.removePvpDuelSession(duel))
+                duelNotificationFactory.notifyDraw(duel);
+        }, pvpConfig.getPvpFinishesIn());
     }
 
     @Override public @NotNull Player denyFromPlayer(@NotNull final Player requestedPlayer, @NotNull final String requestSenderName) {
