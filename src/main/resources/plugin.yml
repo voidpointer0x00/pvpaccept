@@ -1,4 +1,4 @@
-name: PvpAcceptPlugin
+name: PvPAcceptPlugin
 version: '${version}'
 main: voidpointer.mc.pvpaccept.PvpAcceptPlugin
 api-version: 1.19
@@ -6,12 +6,7 @@ authors: [_voidpointer]
 website: vk.me/void.pointer
 folia-supported: true
 
-dependencies:
-  - name: PlaceholderAPI
-    required: false
-    bootstrap: false
-load-after:
-  - name: PlaceholderAPI
+softdepend: [ PlaceholderAPI ]
 
 commands:
   pvp:
@@ -27,3 +22,11 @@ commands:
     description: "Denies the given or last incoming PvP request"
     usage: '/pvp-deny <player>'
     aliases: [ pvpno, pvpdeny ]
+  pvp-info:
+    description: "Displays how much time left till duel finishes forcefully"
+    usage: '/pvp-info'
+    aliases: [ pvpi, pvpinfo ]
+  pvp-config:
+    description: "Changes configuration values"
+    usage: '/pvp-config <path> <value>'
+    aliases: [ pvpcfg ]

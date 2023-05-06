@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 
 @RequiredArgsConstructor
 public enum FormatMessage implements LocaleMessage {
-    DATE_FORMAT("<gold>mmмин., ssсек.</gold>"),
+    DATE_FORMAT("<#ffaa00>mm</#ffaa00> мин., <#ffaa00>ss</#ffaa00> сек."),
     ;
 
     @NotNull private final String defaultValue;

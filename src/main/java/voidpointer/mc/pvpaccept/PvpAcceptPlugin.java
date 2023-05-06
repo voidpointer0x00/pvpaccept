@@ -1,22 +1,25 @@
 package voidpointer.mc.pvpaccept;
 
 import org.bukkit.plugin.java.JavaPlugin;
+import voidpointer.mc.pvpaccept.command.config.PvpConfigCommand;
 import voidpointer.mc.pvpaccept.command.pvp.PvpAcceptCommand;
 import voidpointer.mc.pvpaccept.command.pvp.PvpDenyCommand;
+import voidpointer.mc.pvpaccept.command.pvp.PvpInfoCommand;
 import voidpointer.mc.pvpaccept.command.pvp.PvpSendCommand;
 import voidpointer.mc.pvpaccept.command.pvp.PvpToggleCommand;
 import voidpointer.mc.pvpaccept.config.PvpConfig;
-import voidpointer.mc.pvpaccept.data.DuelNotification;
 import voidpointer.mc.pvpaccept.data.cached.InMemoryPvpService;
 import voidpointer.mc.pvpaccept.listener.PvpDuelController;
 import voidpointer.mc.pvpaccept.locale.Locale;
 import voidpointer.mc.pvpaccept.locale.YamlLocale;
+import voidpointer.mc.pvpaccept.notification.DuelNotification;
 import voidpointer.mc.pvpaccept.papi.PvpPlaceholderExpansion;
 import voidpointer.mc.pvpaccept.schedule.PluginScheduler;
 
 import java.io.File;
 
 public final class PvpAcceptPlugin extends JavaPlugin {
+    private PvpConfig pvpConfig;
     private Locale locale;
     private InMemoryPvpService pvpService;
     private DuelNotification duelNotification;
@@ -24,7 +27,7 @@ public final class PvpAcceptPlugin extends JavaPlugin {
     @Override public void onLoad() {
         if (!new File(getDataFolder(), "config.yml").exists())
             saveDefaultConfig();
-        final PvpConfig pvpConfig = new PvpConfig(this::getConfig, this::saveConfig);
+        pvpConfig = new PvpConfig(this::getConfig, this::saveConfig);
 
         locale = new YamlLocale(getSLF4JLogger(), getDataFolder());
         pvpService = new InMemoryPvpService(pvpConfig, new PluginScheduler(this), new DuelNotification(locale));
@@ -49,5 +52,7 @@ public final class PvpAcceptPlugin extends JavaPlugin {
         PvpDenyCommand.register(this, locale, pvpService);
         PvpSendCommand.register(this, locale, pvpService);
         PvpToggleCommand.register(this, locale, pvpService);
+        PvpInfoCommand.register(this, locale, pvpService);
+        PvpConfigCommand.register(this, locale, pvpConfig);
     }
 }

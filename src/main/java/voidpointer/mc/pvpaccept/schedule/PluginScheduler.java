@@ -2,13 +2,15 @@ package voidpointer.mc.pvpaccept.schedule;
 
 import lombok.RequiredArgsConstructor;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitTask;
+import org.jetbrains.annotations.NotNull;
 
 @RequiredArgsConstructor
 public final class PluginScheduler {
     private final Plugin plugin;
 
-    public void async(final ThrowingRunnable task, final long delayInTicks) {
-        plugin.getServer().getScheduler().runTaskLaterAsynchronously(plugin, () -> {
+    public @NotNull BukkitTask async(final ThrowingRunnable task, final long delayInTicks) {
+        return plugin.getServer().getScheduler().runTaskLaterAsynchronously(plugin, () -> {
             try {
                 task.run();
             } catch (final Exception exception) {

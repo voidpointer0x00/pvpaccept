@@ -5,7 +5,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import voidpointer.mc.pvpaccept.command.Args;
 import voidpointer.mc.pvpaccept.data.PvpService;
-import voidpointer.mc.pvpaccept.exception.PluginCommandNotFoundException;
 import voidpointer.mc.pvpaccept.exception.PvpException;
 import voidpointer.mc.pvpaccept.locale.Locale;
 
@@ -19,8 +18,10 @@ public final class PvpToggleCommand extends AbstractPvpCommand {
 
     public static void register(final JavaPlugin plugin, final Locale locale, final PvpService pvpService) {
         final PluginCommand pvpCommand = plugin.getCommand("pvp");
-        if (pvpCommand == null)
-            throw new PluginCommandNotFoundException();
+        if (pvpCommand == null) {
+            plugin.getSLF4JLogger().error("Unable to register /pvp command, because it's missing in description file.");
+            return;
+        }
         pvpCommand.setExecutor(new PvpToggleCommand(locale, pvpService));
     }
 
@@ -31,10 +32,10 @@ public final class PvpToggleCommand extends AbstractPvpCommand {
     @Override protected void execute(final Args args) throws PvpException {
         final Player player = args.assertPlayer();
         if (pvpService.isEnabledFor(player.getUniqueId())) {
-            pvpService.disableFor(player.getUniqueId());
+            pvpService.disablePvp(player.getUniqueId());
             locale.send(audience(getOnlinePlayers()), PVP_DISABLED, component("player", player.displayName()));
         } else {
-            pvpService.enableFor(player.getUniqueId());
+            pvpService.enablePvp(player.getUniqueId());
             locale.send(audience(getOnlinePlayers()), PVP_ENABLED, component("player", player.displayName()));
         }
     }

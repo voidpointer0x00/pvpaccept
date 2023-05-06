@@ -6,7 +6,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import voidpointer.mc.pvpaccept.command.Args;
 import voidpointer.mc.pvpaccept.data.PvpService;
 import voidpointer.mc.pvpaccept.exception.NotEnoughArgsException;
-import voidpointer.mc.pvpaccept.exception.PluginCommandNotFoundException;
 import voidpointer.mc.pvpaccept.exception.PvpException;
 import voidpointer.mc.pvpaccept.locale.Locale;
 
@@ -18,8 +17,10 @@ public class PvpSendCommand extends AbstractPvpCommand {
 
     public static void register(final JavaPlugin plugin, final Locale locale, final PvpService pvpService) {
         final PluginCommand pvpCommand = plugin.getCommand("pvp-send");
-        if (pvpCommand == null)
-            throw new PluginCommandNotFoundException();
+        if (pvpCommand == null) {
+            plugin.getSLF4JLogger().error("Unable to register /pvp-send command, because it's missing in description file.");
+            return;
+        }
         pvpCommand.setExecutor(new PvpSendCommand(locale, pvpService));
     }
 

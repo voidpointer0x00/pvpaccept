@@ -14,8 +14,8 @@ import voidpointer.mc.pvpaccept.locale.Locale;
 @Slf4j
 @RequiredArgsConstructor
 abstract class AbstractPvpCommand implements CommandExecutor {
-    final Locale locale;
-    final PvpService pvpService;
+    @NotNull final Locale locale;
+    @NotNull final PvpService pvpService;
 
     @Override public final boolean onCommand(@NotNull final CommandSender sender, @NotNull final Command command,
                                              @NotNull final String label, final @NotNull String[] args) {

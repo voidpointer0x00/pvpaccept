@@ -1,9 +1,13 @@
 package voidpointer.mc.pvpaccept.data;
 
+import com.google.common.primitives.Longs;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import net.kyori.adventure.text.ComponentLike;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.Date;
 import java.util.UUID;
@@ -19,8 +23,12 @@ public final class PvpDuelSession {
     private final UUID requestSender;
     @ToString.Include
     private final ComponentLike senderName;
-    @ToString.Include /* TODO remove if unused */
+    @ToString.Include
     private final Date expiresAt;
+
+    @Setter
+    @Getter
+    private BukkitTask forceFinishTask;
 
     public PvpDuelSession(final Player requested, final Player requestSender, final Date expiresAt) {
         this.requested = requested.getUniqueId();
@@ -44,5 +52,10 @@ public final class PvpDuelSession {
 
     public ComponentLike senderName() {
         return senderName;
+    }
+
+    public long timeLeft() {
+        //noinspection UnstableApiUsage
+        return Longs.constrainToRange(expiresAt.getTime() - System.currentTimeMillis(), 0, Long.MAX_VALUE);
     }
 }
