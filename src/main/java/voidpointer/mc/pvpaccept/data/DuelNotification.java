@@ -12,7 +12,7 @@ import static net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.comp
 import static voidpointer.mc.pvpaccept.locale.PvpInfoMessage.PVP_DRAW;
 
 @RequiredArgsConstructor
-public final class DuelNotificationFactory {
+public final class DuelNotification {
     private final Locale locale;
 
     public void notifyDraw(final PvpDuelSession duel) {

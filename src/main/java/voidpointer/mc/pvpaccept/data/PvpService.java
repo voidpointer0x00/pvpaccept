@@ -29,4 +29,8 @@ public interface PvpService {
 
     /** @return an instance of a player who sent the last request if online. */
     @NotNull Optional<Player> denyLast(@NotNull Player requestedPlayer) throws PvpRequestNotFoundException;
+
+    Optional<PvpDuelSession> duelOf(@NotNull Player player);
+
+    void nominateDuelWinner(@NotNull Player killer, @NotNull PvpDuelSession duel);
 }

@@ -5,7 +5,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import voidpointer.mc.pvpaccept.config.PvpConfig;
-import voidpointer.mc.pvpaccept.data.DuelNotificationFactory;
+import voidpointer.mc.pvpaccept.data.DuelNotification;
 import voidpointer.mc.pvpaccept.data.PvpDuelSession;
 import voidpointer.mc.pvpaccept.data.PvpService;
 import voidpointer.mc.pvpaccept.exception.AlreadyDuelingException;
@@ -30,12 +30,12 @@ public final class InMemoryPvpService implements PvpService {
     private final PvpConfig pvpConfig;
     private final PluginScheduler pluginScheduler;
     private final CachedPvpRepository pvpRepository;
-    private final DuelNotificationFactory duelNotificationFactory;
+    private final DuelNotification duelNotification;
 
-    public InMemoryPvpService(final PvpConfig pvpConfig, final PluginScheduler pluginScheduler, final DuelNotificationFactory duelNotificationFactory) {
+    public InMemoryPvpService(final PvpConfig pvpConfig, final PluginScheduler pluginScheduler, final DuelNotification duelNotification) {
         this.pvpConfig = pvpConfig;
         this.pluginScheduler = pluginScheduler;
-        this.duelNotificationFactory = duelNotificationFactory;
+        this.duelNotification = duelNotification;
         this.pvpRepository = new CachedPvpRepository();
     }
 
@@ -106,7 +106,7 @@ public final class InMemoryPvpService implements PvpService {
     private void scheduleDraw(final PvpDuelSession duel) {
         pluginScheduler.async(() -> {
             if (pvpRepository.removePvpDuelSession(duel))
-                duelNotificationFactory.notifyDraw(duel);
+                duelNotification.notifyDraw(duel);
         }, pvpConfig.getPvpFinishesIn());
     }
 
@@ -128,6 +128,21 @@ public final class InMemoryPvpService implements PvpService {
         return Optional.ofNullable(Bukkit.getPlayer(requests.removeLast()));
     }
 
+    @Override public Optional<PvpDuelSession> duelOf(final @NotNull Player player) {
+        for (final PvpDuelSession duel : pvpRepository.getPvpDuelSessions())
+            if (duel.isCombatant(player))
+                return Optional.of(duel);
+        return Optional.empty();
+    }
+
+    @Override public void nominateDuelWinner(@NotNull final Player killer, @NotNull final PvpDuelSession duel) {
+        if (!pvpRepository.removePvpDuelSession(duel)) {
+            log.debug("Tried to nominate a duel winner when the duel already finished. {}", duel);
+            return; /* duel already finished */
+        }
+        duelNotification.notifyVictory(killer.getUniqueId(), duel);
+    }
+
     public void clear() {
         pvpRepository.clear();
     }
@@ -140,17 +155,17 @@ public final class InMemoryPvpService implements PvpService {
     }
 
     private void assertNotDueling(final Player requestedPlayer, final Player requestSender) {
-        for (final PvpDuelSession pvpDuelSession : pvpRepository.getPvpDuelSessions()) {
-            if (pvpDuelSession.requested().equals(requestSender.getUniqueId()))
+        for (final PvpDuelSession duel : pvpRepository.getPvpDuelSessions()) {
+            if (duel.isCombatant(requestedPlayer))
                 throw new AlreadyDuelingException(requestedPlayer, requestSender);
-            else if (pvpDuelSession.requestSender().equals(requestedPlayer.getUniqueId()))
+            else if (duel.isCombatant(requestedPlayer))
                 throw new AlreadyDuelingException(requestedPlayer);
         }
     }
 
     private void assertNotDueling(final Player requestedPlayer) {
         for (final PvpDuelSession pvpDuelSession : pvpRepository.getPvpDuelSessions()) {
-            if (pvpDuelSession.requestSender().equals(requestedPlayer.getUniqueId()))
+            if (pvpDuelSession.isCombatant(requestedPlayer))
                 throw new AlreadyDuelingException(requestedPlayer);
         }
     }
